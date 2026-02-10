@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HALE'DEN MEKTUP</title>
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Montserrat:wght@400;600;800&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+<style> 
+:root {
+    --primary: #9b596a;
+    --primary-dark: #ffffff;
+    --bg-gradient: linear-gradient(135deg, #d8c7cc 0%, #f5cad1 100%);
+    --glass: #d8a5b2;
+    --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    --text-color: #000000;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: 'Montserrat', sans-serif;
+    background: var(--bg-gradient);
+    min-height: 100vh;
+    padding: 30px 10px;
+    color: var(--text-color);
+    overflow-x: hidden;
+}
+
+.main-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    transition: opacity 1s ease;
+}
+
+/* --- ÜST KISIM --- */
+.password-header {
+    background: var(--glass);
+    padding: 30px;
+    border-radius: 25px;
+    box-shadow: var(--shadow);
+    text-align: center;
+    border: 3px solid white;
+}
+
+.title {
+    font-family: 'Courier New', Courier, monospace;
+    color: var(--primary);
+    font-size: 3rem;
+    margin-bottom: 25px;
+    text-shadow: 2px 2px 0px rgba(255,255,255,0.5);
+    letter-spacing: 1px;
+}
+
+.subtitle {
+    font-size: 1rem;
+    color: #666;
+    margin-top: 15px;
+    font-weight: 600;
+}
+
+.password-display {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.word-group { display: flex; gap: 8px; }
+
+/* Şifre Inputları */
+.pass-input {
+    width: 50px;
+    height: 65px;
+    border: 3px solid #ddd;
+    border-radius: 12px;
+    text-align: center;
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--primary);
+    background: #fff;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+}
+
+.pass-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(233, 30, 99, 0.2);
+}
+
+.pass-input.correct {
+    background-color: #d1e7dd;
+    border-color: #198754;
+    color: #0f5132;
+    pointer-events: none;
+}
+
+.pass-input.wrong {
+    background-color: #f8d7da;
+    border-color: #dc3545;
+    color: #dc3545;
+    animation: shake 0.3s;
+}
+
+.slot-number-label {
+    position: absolute;
+    font-size: 10px;
+    color: #0a0909;
+    bottom: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.pass-wrapper { position: relative; }
+.spacer { width: 30px; }
+
+/* --- SORULAR ALANI --- */
+.quiz-layout {
+    display: flex;
+    gap: 20px;
+}
+
+.col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.question-box {
+    background: var(--glass);
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: var(--shadow);
+    border-left: 6px solid var(--primary);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 140px; 
+}
+
+.q-title {
+    font-weight: 700;
+    margin-bottom: 15px;
+    color: var(--primary-dark);
+    font-size: 1.1rem;
+}
+
+.answer-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.char-wrapper {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.char-input {
+    width: 38px;
+    height: 48px;
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 1.3rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #555;
+    transition: 0.2s;
+    background: #fff;
+}
+
+.char-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    transform: scale(1.1);
+    z-index: 10;
+}
+
+.char-input.correct { background: #e8f5e9; border-color: #4caf50; color: #2e7d32; }
+.char-input.wrong { background: #ffebee; border-color: #e57373; animation: shake 0.3s; }
+
+.clue-badge {
+    position: absolute;
+    bottom: -22px;
+    background: var(--primary);
+    color: white;
+    font-size: 0.8rem;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    z-index: 5;
+    opacity: 0;
+    transform: scale(0);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.clue-badge.visible { opacity: 1; transform: scale(1); }
+.space-box { width: 15px; }
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+@media (max-width: 800px) {
+    .quiz-layout { flex-direction: column; }
+    .title { font-size: 2rem; }
+    .pass-input { width: 35px; height: 50px; font-size: 1.4rem; }
+}
+
+
+.letter-container {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    /* Flex JS ile kontrol edilecek */
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    opacity: 0;
+    transition: opacity 1s ease;
+    pointer-events: none;
+}
+
+.letter-container.visible {
+    opacity: 1;
+    pointer-events: all;
+    display: flex; 
+}
+
+.envelope-wrapper {
+    position: relative;
+    cursor: pointer;
+    transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.envelope-wrapper:hover {
+    transform: scale(1.1);
+}
+
+.envelope {
+    width: 320px;
+    height: 220px;
+    background: #9b596a;
+    position: relative;
+    border-radius: 0 0 10px 10px;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+    z-index: 10;
+}
+
+.flap {
+    position: absolute;
+    top: 0; left: 0;
+    width: 0; height: 0;
+    border-left: 160px solid transparent;
+    border-right: 160px solid transparent;
+    border-top: 130px solid #b56b7e;
+    transform-origin: top;
+    transition: transform 0.6s 0.2s ease-in-out;
+    z-index: 20;
+}
+
+.pocket {
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 0; height: 0;
+    border-left: 160px solid #9b596a;
+    border-right: 160px solid #9b596a;
+    border-top: 110px solid transparent;
+    z-index: 15;
+    border-radius: 0 0 10px 10px;
+}
+
+.envelope-wrapper.open .flap {
+    transform: rotateX(180deg);
+    z-index: 5;
+}
+
+.envelope-wrapper.open {
+    cursor: default;
+    transform: translateY(50px);
+}
+
+/* --- FOTOĞRAF AYARLARI --- */
+.photo {
+    position: absolute;
+    width: 320px;
+    height: 400px;
+    object-fit: cover;
+    background: #fdfbf0;
+    padding: 10px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+    border-radius: 4px;
+    top: 50%; left: 50%;
+    --scale: 0.5; 
+    transform: translate(var(--tx, -50%), var(--ty, -50%)) rotate(var(--rot, 0deg)) scale(var(--scale));
+    opacity: 0;
+    transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); 
+    z-index: 8;
+    pointer-events: none;
+}
+
+.envelope-wrapper.open .photo {
+    opacity: 1;
+    z-index: 30;
+    --scale: 1;
+    pointer-events: auto;
+}
+
+.envelope-wrapper.open .photo:hover {
+    --scale: 1.2;
+    z-index: 50;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+}
+
+.envelope-wrapper.open .p1 { transform: translate(-480px, -500px) rotate(-25deg); transition-delay: 0.1s; }
+.envelope-wrapper.open .p2 { transform: translate(-700px, -180px) rotate(-100deg); transition-delay: 0.2s; }
+.envelope-wrapper.open .p3 { transform: translate(-400px, 100px) rotate(10deg); transition-delay: 0.3s; }
+.envelope-wrapper.open .p4 { transform: translate(240px, -500px) rotate(25deg); transition-delay: 0.1s; }
+.envelope-wrapper.open .p5 { transform: translate(350px, -180px) rotate(-80deg); transition-delay: 0.2s; }
+.envelope-wrapper.open .p6 { transform: translate(100px, 100px) rotate(-10deg); transition-delay: 0.3s; }
+
+/* --- MEKTUP KAĞIDI --- */
+.letter-paper {
+    position: absolute;
+    width: 280px;
+    height: 200px;
+    background-color: #fdfbf0;
+    background-image: repeating-linear-gradient(transparent, transparent 23px, #9ac0cd 24px);
+    top: 10px;
+    left: 20px;
+    padding: 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    z-index: 12; 
+    transition: all 0.8s ease;
+    overflow: hidden;
+    cursor: pointer;
+    font-family: 'Dancing Script', cursive;
+    color: #444;
+}
+
+.envelope-wrapper.open .letter-paper {
+    transform: translateY(-50px);
+    z-index: 35; 
+}
+
+/* OKUMA MODU: Orijinal boyutlarına geri getirildi */
+.letter-paper.read {
+    position: fixed;
+    top: 50%; left: 50%;
+    width: 500px;      /* Orijinal Genişlik */
+    height: 500px;     /* Orijinal Yükseklik */
+    max-width: 90vw;   /* Sadece çok küçük ekranlarda taşmayı önler */
+    max-height: 80vh;
+    transform: translate(-50%, -50%) !important;
+    z-index: 200;
+    box-shadow: 0 30px 100px rgba(0,0,0,0.5);
+    padding: 40px;
+    overflow-y: auto;
+    border-radius: 10px;
+    cursor: default;
+}
+
+.paper-content {
+    opacity: 0.5;
+    transition: opacity 0.5s;
+    font-size: 1.5rem;
+    line-height: 1.6;
+}
+
+.letter-paper.read .paper-content {
+    opacity: 1;
+}
+
+.close-hint {
+    display: none;
+    font-size: 0.9rem;
+    color: #888;
+    font-family: 'Montserrat', sans-serif;
+    margin-top: 20px;
+    text-align: center;
+    cursor: pointer;
+}
+
+.letter-paper.read .close-hint { display: block; }
+
+/* --- GİRİŞ EKRANI (INTRO) --- */
+#intro-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    cursor: pointer;
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 0.8s ease;
+    touch-action: manipulation;
+}
+
+.intro-box {
+    background: rgba(250, 231, 231, 0.95);
+    padding: 40px;
+    border-radius: 20px;
+    text-align: center;
+    max-width: 450px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    border: 4px solid #9b596a;
+    animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    pointer-events: auto; 
+}
+
+.notification-icon {
+    font-size: 4rem;
+    margin-bottom: 15px;
+    animation: bounce 2s infinite;
+}
+
+.intro-box h1 {
+    font-family: 'Courier New', Courier, monospace;
+    color: #9b596a;
+    font-size: 1.8rem;
+    margin-bottom: 15px;
+    letter-spacing: -1px;
+}
+
+.intro-box p {
+    font-family: 'Montserrat', sans-serif;
+    color: #555;
+    line-height: 1.5;
+    margin-bottom: 5px;
+}
+
+/* Kalp Efektleri */
+.bg-heart {
+    position: fixed;
+    opacity: 0;
+    z-index: 1;
+    pointer-events: none;
+    user-select: none;
+    animation: appear 2s forwards, heartbeat 1.5s infinite ease-in-out;
+}
+
+@keyframes appear { to { opacity: 0.6; } }
+@keyframes heartbeat {
+    0% { transform: scale(1); }
+    15% { transform: scale(1.3); }
+    30% { transform: scale(1); }
+    45% { transform: scale(1.15); }
+    60% { transform: scale(1); }
+    100% { transform: scale(1); }
+}
+
+@keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes bounce { 0%, 20%, 50%, 80%, 100% {transform: translateY(0);} 40% {transform: translateY(-10px);} 60% {transform: translateY(-5px);} }
+</style>
+</head>
+
+<body>
+
+<div id="intro-overlay">
+    <div class="intro-box">
+        <div class="notification-icon">💌</div>
+        <h1>HALE SİZE BİR MEKTUP GÖNDERDİ!</h1>
+        <p>Bu mektuba ulaşmak o kadar kolay değil...</p>
+        <p style="font-size: 0.9rem; margin-top: 5px;">Soruları doğru cevapla, şifreyi çöz ve mektubu oku!</p>
+
+        <button id="startBtn" style="
+    margin-top:25px;
+    padding:15px 25px;
+    font-size:18px;
+    border:none;
+    border-radius:12px;
+    background:#9b596a;
+    color:white;
+    font-weight:700;
+">
+    BAŞLAMAK İÇİN DOKUN 💌
+</button>
+
+    </div>
+</div>
+
+    <div class="main-container" id="game-phase">
+        <header class="password-header">
+            <h1 class="title">Şifreyi Çöz Mektuba Ulaş 💌</h1>
+            
+            <div class="password-display">
+                <div class="word-group" id="word-1"></div>
+                <div class="spacer"></div>
+                <div class="word-group" id="word-2"></div>
+            </div>
+            
+            <p class="subtitle">Not: Noktalı harf kullanma!</p>
+        </header>
+
+        <div class="quiz-layout">
+            <div class="col" id="left-column"></div>
+            <div class="col" id="right-column"></div>
+        </div>
+    </div>
+
+    <div class="letter-container" id="letter-phase">
+        <div class="envelope-wrapper" id="envelope" onclick="openEnvelope()">
+            <div class="envelope">
+                <div class="flap"></div>
+                <div class="pocket"></div>
+                
+                <div class="letter-paper" onclick="readPaper(event)">
+                    <div class="paper-content">
+                        <h2>Şahsi Oğlanım,</h2>
+                        <p>
+                            Henüz birbirimizi yeni tanıdığımız için soruları basit tuttum. Belki bir-iki kazık soru vardı. O da olsun artık.
+                            <br><br>
+                            Seninle geçen her an, çözdüğümüz bu bulmaca gibi keyifli ve sürprizlerle dolu. 
+                            Hayatıma kattığın renkler için teşekkür ederim. Umarım keyfin biraz da olsa düzelmiştir.
+                            <br><br>
+                            Birlikte nice güzel anılara...
+                            <br><br>
+                            <b>ILY MERTO! ❤️</b>
+                            <br>
+                            <span class="close-hint">(Kapatmak için tıkla)</span>
+                        </p>
+
+                        <div style="text-align:center; margin:25px 0;">
+                            <img src="https://i.pinimg.com/736x/02/24/4c/02244ce320105cd7812ab525162ceaf8.jpg"
+                                 style="width:230px; border-radius:15px; box-shadow:0 8px 20px rgba(0,0,0,0.25);">
+                        </div>
+
+                       <div style="margin-top:20px;">
+                            <iframe data-testid="embed-iframe"
+                                style="border-radius:12px"
+                                src="https://open.spotify.com/embed/playlist/0rLdJJBXMfa0Hqlw4hO7qm?utm_source=generator"
+                                width="100%"
+                                height="352"
+                                frameBorder="0"
+                                allowfullscreen=""
+                                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                                loading="lazy">
+                            </iframe>
+                        </div>
+                    </div>
+                </div>
+
+                <img src="https://i.pinimg.com/736x/58/94/d0/5894d0d1980e40c853aded4091d90136.jpg" class="photo p1">
+                <img src="https://i.pinimg.com/736x/54/dc/4b/54dc4b2fbd52ee03cca04eca1e25d8d0.jpg" class="photo p2">
+                <img src="https://i.pinimg.com/1200x/d3/b6/6f/d3b66fca3b8d13ff0ce1208de300b44f.jpg" class="photo p3">
+                <img src="https://i.pinimg.com/736x/ee/32/3e/ee323e6015738442221b65528b14a839.jpg" class="photo p4">
+                <img src="https://i.pinimg.com/736x/d7/a8/96/d7a8966e61770544a8d6672ce0e41920.jpg" class="photo p5">
+                <img src="https://i.pinimg.com/1200x/95/81/48/958148036501b352380591b92cd16baf.jpg" class="photo p6">
+            </div>
+        </div>
+    </div>
+
+<script>
+// --- SORU AYARLARI ---
+const puzzleConfig = [
+    { id: 1, question: "Beraber ilk izlediğimiz şey neydi?", answer: "KISMETSE OLUR" },
+    { id: 2, question: "İlk datede kafede çalan müzik neydi?", answer: "NE GUZELDIK OYSA BIZ" },
+    { id: 3, question: "Bir mevsim olsak hangisi olurduk?", answer: "YAZ" },
+    { id: 4, question: "Gözlerim ne renk?", answer: "ZEYTIN YESILI" },
+    { id: 5, question: "First kiss tarihi?", answer: "19 OCAK" },
+    { id: 6, question: "Kalbinde benden sonra yer alan şey nedir?", answer: "GALATASARAY" },
+    { id: 7, question: "En sevdiğim çikolata?", answer: "GOFRIK" },
+    { id: 8, question: "Bir hayvan olsaydım hangisi olurdum?", answer: "KANARYA" },
+    { id: 9, question: "Soyadım ne?", answer: "CETINKAYA" },
+    { id: 10, question: "Birbirimizi ne kadar seviyoruz?", answer: "COK" }
+];
+
+// --- MOBİL DOKUNMATİK SORUNUNU ÇÖZEN BAŞLATMA FONKSİYONU ---
+document.addEventListener("DOMContentLoaded", function () {
+    initGame();
+
+    const btn = document.getElementById("startBtn");
+    btn.addEventListener("click", startGame);
+});
+
+function startGame() {
+    const overlay = document.getElementById('intro-overlay');
+    overlay.remove();   // direkt DOM'dan siliyoruz
+}
+
+
+function initGame() { 
+    createQuestions(); 
+}
+
+// --- SORULARI OLUŞTUR ---
+function createQuestions() {
+    const leftCol = document.getElementById('left-column');
+    const rightCol = document.getElementById('right-column');
+
+    puzzleConfig.forEach((q, index) => {
+        const box = document.createElement('div');
+        box.className = 'question-box';
+
+        const title = document.createElement('div');
+        title.className = 'q-title';
+        title.innerText = `${q.id}. ${q.question}`;
+        box.appendChild(title);
+
+        const row = document.createElement('div');
+        row.className = 'answer-row';
+
+        [...q.answer].forEach((char) => {
+            if (char === ' ') {
+                const space = document.createElement('div');
+                space.className = 'space-box';
+                row.appendChild(space);
+                return;
+            }
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'char-wrapper';
+
+            const input = document.createElement('input');
+            input.type = "text";
+            input.maxLength = 1;
+            input.className = 'char-input';
+            input.dataset.correct = char;
+
+            input.addEventListener('input', (e) => handleAnswerInput(e.target, wrapper));
+            input.addEventListener('keydown', (e) => {
+                if (e.key === "Backspace" && input.value === "") focusPrev(wrapper);
+            });
+
+            wrapper.appendChild(input);
+            row.appendChild(wrapper);
+        });
+
+        box.appendChild(row);
+
+        if (index < 5) leftCol.appendChild(box);
+        else rightCol.appendChild(box);
+    });
+}
+
+// --- CEVAP GİRİŞİ ---
+function handleAnswerInput(input, wrapper) {
+    let val = input.value.toLocaleUpperCase('tr-TR');
+    input.value = val;
+
+    if (val === input.dataset.correct) {
+        input.classList.add('correct');
+        input.classList.remove('wrong');
+        focusNext(wrapper);
+        checkAllAnswersCompleted();
+    } 
+    else if (val !== '') {
+        input.classList.add('wrong');
+        input.classList.remove('correct');
+    } 
+    else {
+        input.classList.remove('wrong');
+        input.classList.remove('correct');
+    }
+}
+
+// --- TÜM CEVAPLAR DOĞRU MU? ---
+function checkAllAnswersCompleted() {
+    const allInputs = document.querySelectorAll('.char-input');
+    let allCorrect = true;
+
+    allInputs.forEach(inp => {
+        if (!inp.classList.contains('correct')) {
+            allCorrect = false;
+        }
+    });
+
+    if (allCorrect) triggerWin();
+}
+
+// --- KAZANMA EFEKTİ ---
+function triggerWin() {
+    confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 }, colors: ['#9b596a', '#ffffff'] });
+
+    setTimeout(() => {
+        const gamePhase = document.getElementById('game-phase');
+        const letterContainer = document.querySelector('.letter-container');
+
+        gamePhase.style.opacity = '0';
+
+        setTimeout(() => {
+            gamePhase.style.display = 'none';
+            letterContainer.style.display = 'flex'; 
+            
+            requestAnimationFrame(() => {
+                letterContainer.classList.add('visible');
+            });
+
+            var duration = 3 * 1000;
+            var end = Date.now() + duration;
+
+            (function frame() {
+                confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#9b596a', '#ffffff'] });
+                confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#9b596a', '#ffffff'] });
+
+                if (Date.now() < end) requestAnimationFrame(frame);
+            })();
+        }, 1000);
+    }, 1200);
+}
+
+function focusNext(currentWrapper) {
+    let nextEl = currentWrapper.nextElementSibling;
+    if (nextEl && nextEl.classList.contains('space-box')) nextEl = nextEl.nextElementSibling;
+    if (nextEl) {
+        const input = nextEl.querySelector('input');
+        if (input) input.focus();
+    }
+}
+
+function focusPrev(currentWrapper) {
+    let prevEl = currentWrapper.previousElementSibling;
+    if (prevEl && prevEl.classList.contains('space-box')) prevEl = prevEl.previousElementSibling;
+    if (prevEl) {
+        const input = prevEl.querySelector('input');
+        if (input) input.focus();
+    }
+}
+
+function openEnvelope() {
+    const envelopeWrapper = document.getElementById('envelope');
+
+    if (!envelopeWrapper.classList.contains('open')) {
+        envelopeWrapper.classList.add('open');
+        createHeartBackground();
+    }
+}
+
+function createHeartBackground() {
+    const container = document.body;
+    const heartCount = 60;
+    const colors = ['❤️', '💖', '💗', '💜', '💕'];
+
+    for (let i = 0; i < heartCount; i++) {
+        const heart = document.createElement('div');
+        heart.classList.add('bg-heart');
+
+        heart.innerText = colors[Math.floor(Math.random() * colors.length)];
+        heart.style.left = Math.random() * 100 + 'vw';
+        heart.style.top = Math.random() * 100 + 'vh';
+
+        const size = Math.floor(Math.random() * 30) + 10;
+        heart.style.fontSize = `${size}px`;
+        heart.style.animationDelay = `0s, ${Math.random() * 2}s`;
+
+        container.appendChild(heart);
+    }
+}
+
+function readPaper(event) {
+    event.stopPropagation();
+    const paper = document.querySelector('.letter-paper');
+    const envelopeWrapper = document.getElementById('envelope');
+
+    if (envelopeWrapper.classList.contains('open')) {
+        paper.classList.toggle('read');
+    }
+}
+
+</script>
+</body>
+</html>
